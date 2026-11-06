@@ -114,6 +114,12 @@ def raiz():
     return {"mensaje": "API de la Tienda Online. Documentación en /docs, frontend en /tienda"}
 
 
+@app.get("/health", tags=["General"])
+def health():
+    """Comprobación de salud (liveness) usada por el HEALTHCHECK de Docker."""
+    return {"status": "ok", "version": settings.app_version}
+
+
 # ---------------------------------------------------------------------- #
 # Usuarios
 # ---------------------------------------------------------------------- #

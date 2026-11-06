@@ -34,6 +34,20 @@ def crear_portatil(client, stock=5):
     return r.json()
 
 
+# ----------------------------- General ---------------------------- #
+def test_raiz(client):
+    r = client.get("/")
+    assert r.status_code == 200
+    assert "/docs" in r.json()["mensaje"]
+
+
+def test_health(client):
+    r = client.get("/health")
+    assert r.status_code == 200
+    assert r.json()["status"] == "ok"
+    assert "version" in r.json()
+
+
 # ---------------------------- Usuarios ---------------------------- #
 def test_crear_y_obtener_usuarios(client):
     cliente = crear_cliente(client)

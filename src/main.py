@@ -8,6 +8,9 @@ Ejecutar desde esta carpeta con:
     uvicorn main:app --reload
 o directamente con el botón "Ejecutar" / ``python main.py``, que acepta
 conexiones de otros equipos de la red.
+
+La configuración del servidor (host, puerto, nivel de log, datos de ejemplo...)
+se lee de variables de entorno; ver config.py.
 """
 
 import socket
@@ -18,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from config import settings
 from schemas import (
     PedidoCreate,
     PedidoRead,
@@ -37,7 +41,7 @@ from Services import (
 app = FastAPI(
     title="Tienda Online API",
     description="API REST de la tienda online (Práctica 2) construida sobre TiendaService.",
-    version="1.0.0",
+    version=settings.app_version,
 )
 
 # Permite que el frontend (abierto desde otro origen, p. ej. el fichero
@@ -65,7 +69,8 @@ def cargar_datos_ejemplo(tienda: TiendaService) -> None:
 
 # Una única instancia del servicio para toda la aplicación (datos en memoria)
 tienda_service = TiendaService()
-cargar_datos_ejemplo(tienda_service)
+if settings.cargar_datos_ejemplo:
+    cargar_datos_ejemplo(tienda_service)
 
 
 def get_tienda() -> TiendaService:
@@ -107,6 +112,12 @@ async def value_error_handler(request: Request, exc: ValueError):
 @app.get("/", tags=["General"])
 def raiz():
     return {"mensaje": "API de la Tienda Online. Documentación en /docs, frontend en /tienda"}
+
+
+@app.get("/health", tags=["General"])
+def health():
+    """Comprobación de salud (liveness) usada por el HEALTHCHECK de Docker."""
+    return {"status": "ok", "version": settings.app_version}
 
 
 # ---------------------------------------------------------------------- #
@@ -250,12 +261,12 @@ def ip_local() -> str:
 if __name__ == "__main__":
     import uvicorn
 
-    # 0.0.0.0 = aceptar conexiones de otros equipos de la red, no solo de localhost
-    HOST = "0.0.0.0"
-    PORT = 8000
+    # Por defecto HOST=0.0.0.0: acepta conexiones de otros equipos de la red
+    # (y, dentro de Docker, desde fuera del contenedor), no solo de localhost
+    PORT = settings.port
 
     print(f"API en este equipo:   http://localhost:{PORT}/docs")
     print(f"API desde otro equipo: http://{ip_local()}:{PORT}/docs")
     print(f"Frontend:              http://localhost:{PORT}/tienda/")
 
-    uvicorn.run(app, host=HOST, port=PORT)
+    uvicorn.run(app, host=settings.host, port=PORT, log_level=settings.log_level)

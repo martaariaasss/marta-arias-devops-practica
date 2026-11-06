@@ -1,0 +1,70 @@
+name: CI
+
+# - En cada push a main / feature/** y en cada Pull Request hacia main:
+#     tests de Python + build -> run -> test de la imagen Docker.
+# - Al crear una etiqueta vX.Y.Z (p. ej. v1.0.0): además publica la imagen en
+#     Docker Hub (requiere los secretos DOCKERHUB_USERNAME y DOCKERHUB_TOKEN).
+on:
+  push:
+    branches: [main, "feature/**"]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+
+      - name: Ejecutar tests
+        run: python -m pytest -v
+
+  docker:
+    name: Docker (build -> run -> test -> push)
+    needs: tests
+    runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Calcular usuario y versión de la imagen
+        id: meta
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-ci" >> "$GITHUB_OUTPUT"
+          fi
+          echo "user=${DOCKERHUB_USERNAME:-local}" >> "$GITHUB_OUTPUT"
+
+      - name: Build, run y smoke test (mismo script que en local)
+        run: ./scripts/docker_flow.sh "${{ steps.meta.outputs.user }}" "${{ steps.meta.outputs.version }}"
+
+      - name: Login en Docker Hub
+        if: startsWith(github.ref, 'refs/tags/v') && env.DOCKERHUB_TOKEN != ''
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Publicar imagen en Docker Hub
+        if: startsWith(github.ref, 'refs/tags/v') && env.DOCKERHUB_TOKEN != ''
+        run: docker push --all-tags "$(echo "$DOCKERHUB_USERNAME" | tr '[:upper:]' '[:lower:]')/tienda-online-api"

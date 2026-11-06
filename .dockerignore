@@ -1,0 +1,48 @@
+# =============================================================================
+# .dockerignore — ficheros que NO se envían al contexto de build de Docker.
+# Imagen más pequeña, builds más rápidos y sin secretos ni basura dentro.
+# =============================================================================
+
+# --- Lista del enunciado ---
+__pycache__/
+**/__pycache__/
+*.pyc
+.git
+.gitignore
+.venv
+venv/
+.pytest_cache/
+.DS_Store
+tests/
+
+# --- Control de versiones y CI (no se necesitan para ejecutar la app) ---
+.gitattributes
+.github/
+
+# --- Secretos: NUNCA dentro de la imagen (se pasan con -e / --env-file) ---
+.env
+*.env
+!.env.example
+
+# --- Herramientas, IDE y sistema operativo ---
+.vscode/
+.idea/
+Thumbs.db
+*.log
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- Cliente Python (se ejecuta fuera del contenedor) ---
+cliente/
+
+# --- Documentación, scripts y ficheros de Docker ---
+docs/
+scripts/
+*.md
+*.pdf
+Dockerfile
+.dockerignore
+requirements-dev.txt
+pytest.ini

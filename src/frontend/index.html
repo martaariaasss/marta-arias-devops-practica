@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tienda Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --bg: #f6f4ef; --card: #ffffff; --text: #1b1d24; --muted: #6e7180;
+    --border: #e7e4dc; --accent: #5b3df5; --accent-2: #7c62ff; --accent-soft: #eeeaff;
+    --ok-bg: #e5f7ec; --ok: #18794e; --err-bg: #fdecec; --err: #c0262d; --warn: #b25e00; --warn-bg: #fff2df;
+    --elec: #2f6bff; --elec-bg: #e6eeff; --ropa: #e0457b; --ropa-bg: #ffe8f0; --gen: #d98a00; --gen-bg: #fff3d9;
+    --sombra: 0 1px 2px rgba(20,18,40,.05), 0 6px 18px rgba(20,18,40,.06);
+    --sombra-hover: 0 4px 8px rgba(20,18,40,.06), 0 18px 40px rgba(20,18,40,.14);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); }
+
+  /* ---------- cabecera / portada ---------- */
+  header { position: relative; overflow: hidden; color: #fff; padding: 22px 32px 84px;
+           background: radial-gradient(circle at 85% 20%, #ff7ab6 0%, transparent 38%),
+                       radial-gradient(circle at 10% 90%, #3fd0ff 0%, transparent 40%),
+                       linear-gradient(125deg, #2b1b8f 0%, #5b3df5 55%, #8d4dff 100%); }
+  header::after { content: "🛍️ 💻 👕 📱 ☕ 👖 🎧 👟"; position: absolute; right: -20px; bottom: 6px; font-size: 3.2rem;
+                  letter-spacing: 18px; opacity: .14; white-space: nowrap; pointer-events: none; }
+  .barra { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+           position: relative; z-index: 1; }
+  .marca { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 44px; height: 44px; border-radius: 14px; background: rgba(255,255,255,.18);
+          backdrop-filter: blur(6px); display: grid; place-items: center; font-size: 1.4rem; }
+  .marca strong { font-size: 1.2rem; font-weight: 800; letter-spacing: -.01em; }
+  .servidor { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .82rem;
+              background: rgba(255,255,255,.12); padding: 6px 6px 6px 14px; border-radius: 999px;
+              border: 1px solid rgba(255,255,255,.22); backdrop-filter: blur(6px); }
+  .servidor span.etq { opacity: .85; }
+  .servidor input { width: 210px; background: transparent; border: 0; color: #fff; padding: 6px 4px; }
+  .servidor input:focus { outline: none; }
+  .servidor button { padding: 7px 14px; border: 0; border-radius: 999px; background: #fff; color: var(--accent);
+                     font-weight: 700; cursor: pointer; font-family: inherit; }
+  #estado { font-size: .75rem; padding: 4px 10px; border-radius: 999px; font-weight: 700; }
+  #estado.ok { background: #c9f7dc; color: #0f5e36; }
+  #estado.err { background: #ffd6d3; color: #8f1a12; }
+  #estado:empty { display: none; }
+
+  .hero { position: relative; z-index: 1; margin-top: 36px; max-width: 640px; }
+  .hero h1 { margin: 0; font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+  .hero p { margin: 10px 0 0; font-size: 1rem; opacity: .85; }
+  .stats { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+  .stat { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); border-radius: 16px;
+          padding: 10px 16px; backdrop-filter: blur(6px); min-width: 120px; }
+  .stat b { display: block; font-size: 1.4rem; font-weight: 800; }
+  .stat span { font-size: .78rem; opacity: .85; }
+
+  /* ---------- pestañas ---------- */
+  nav { position: sticky; top: 0; z-index: 10; display: flex; justify-content: center; margin: -30px 32px 0; }
+  .tabs { display: flex; gap: 4px; padding: 6px; background: var(--card); border-radius: 999px;
+          box-shadow: var(--sombra-hover); overflow-x: auto; max-width: 100%; }
+  nav button { border: 0; background: none; padding: 11px 18px; cursor: pointer; font-size: .92rem; border-radius: 999px;
+               color: var(--muted); font-family: inherit; font-weight: 600; white-space: nowrap; transition: all .15s; }
+  nav button:hover { color: var(--text); background: #f3f1ec; }
+  nav button.activa { color: #fff; background: linear-gradient(120deg, var(--accent), var(--accent-2));
+                      box-shadow: 0 4px 12px rgba(91,61,245,.35); }
+
+  /* ---------- estructura ---------- */
+  main { padding: 32px 32px 56px; max-width: 1300px; margin: 0 auto; }
+  section { display: none; gap: 28px; grid-template-columns: 1fr 350px; align-items: start; }
+  section.activa { display: grid; animation: entrar .3s ease; }
+  section.una-col { grid-template-columns: 1fr; }
+  @keyframes entrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (max-width: 920px) {
+    section.activa { grid-template-columns: 1fr; }
+    main, header { padding-left: 16px; padding-right: 16px; }
+    nav { margin-left: 16px; margin-right: 16px; justify-content: flex-start; }
+    .servidor input { width: 150px; }
+  }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 24px;
+           box-shadow: var(--sombra); min-width: 0; position: sticky; top: 84px; }
+  .panel h2 { margin: 0 0 4px; font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+  .panel h2 .burbuja { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+                       background: var(--accent-soft); font-size: 1.05rem; }
+  .panel .sub { margin: 0 0 8px; color: var(--muted); font-size: .85rem; }
+  .cabecera { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+              margin-bottom: 18px; }
+  .cabecera h2 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+  .cabecera .contador { color: var(--muted); font-weight: 600; font-size: .95rem; margin-left: 8px;
+                        background: #ece9e1; padding: 2px 10px; border-radius: 999px; vertical-align: middle; }
+  .cabecera .contador:empty { display: none; }
+  .acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* filtros con chips + buscador */
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .chip { border: 1px solid var(--border); background: var(--card); padding: 8px 14px; border-radius: 999px;
+          font-family: inherit; font-size: .88rem; font-weight: 600; color: var(--text); cursor: pointer;
+          display: inline-flex; align-items: center; gap: 6px; transition: all .15s; }
+  .chip:hover { border-color: var(--accent-2); }
+  .chip.activa { background: var(--text); color: #fff; border-color: var(--text); }
+  .buscar { position: relative; }
+  .buscar input { width: 220px; padding-left: 34px; border-radius: 999px; }
+  .buscar::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: .85rem; }
+
+  /* ---------- formularios ---------- */
+  label { display: block; font-size: .8rem; font-weight: 700; color: var(--muted); margin: 14px 0 6px; }
+  input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px;
+                  font-size: .95rem; background: #fdfcfa; color: var(--text); font-family: inherit; }
+  input:focus, select:focus { outline: 3px solid var(--accent-soft); border-color: var(--accent-2); background: #fff; }
+  .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  button.principal { margin-top: 20px; width: 100%; padding: 13px; border: 0; border-radius: 14px;
+                     background: linear-gradient(120deg, var(--accent), var(--accent-2)); color: #fff;
+                     font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit;
+                     box-shadow: 0 6px 16px rgba(91,61,245,.3); transition: transform .15s, box-shadow .15s; }
+  button.principal:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(91,61,245,.38); }
+  button.secundario { padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card);
+                      cursor: pointer; font-size: .85rem; font-family: inherit; font-weight: 600; color: var(--text); }
+  button.secundario:hover { border-color: var(--accent-2); color: var(--accent); }
+  button.peligro { color: var(--err); border-color: #f4c9c6; }
+  button.peligro:hover { background: var(--err-bg); color: var(--err); border-color: var(--err); }
+  .acciones select { width: auto; padding: 8px 12px; border-radius: 999px; }
+  .msg { margin-top: 14px; padding: 10px 12px; border-radius: 12px; font-size: .88rem; display: none; white-space: pre-line; }
+  .msg.ok { display: block; background: var(--ok-bg); color: var(--ok); }
+  .msg.err { display: block; background: var(--err-bg); color: var(--err); }
+  .oculto { display: none !important; }
+
+  /* selector de tipo con botones */
+  .tipos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tipos.dos { grid-template-columns: repeat(2, 1fr); }
+  .tipos label { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 4px;
+                 border: 2px solid var(--border); border-radius: 14px; cursor: pointer; font-size: .8rem;
+                 color: var(--text); font-weight: 600; text-align: center; transition: all .15s; }
+  .tipos label:hover { border-color: var(--accent-2); }
+  .tipos label span.ico { font-size: 1.5rem; }
+  .tipos input { display: none; }
+  .tipos input:checked + label { border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
+                                 transform: translateY(-1px); }
+
+  /* ---------- tarjetas de producto ---------- */
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+  .tarjeta { background: var(--card); border: 1px solid var(--border); border-radius: 22px;
+             box-shadow: var(--sombra); display: flex; flex-direction: column; overflow: hidden;
+             transition: transform .2s, box-shadow .2s; position: relative; animation: entrar .35s ease both; }
+  .tarjeta:hover { transform: translateY(-4px); box-shadow: var(--sombra-hover); }
+  .tarjeta.electronico { --c: var(--elec); --cbg: var(--elec-bg); --g1: #dfe8ff; --g2: #b9ccff; }
+  .tarjeta.ropa        { --c: var(--ropa); --cbg: var(--ropa-bg); --g1: #ffe3ee; --g2: #ffbfd5; }
+  .tarjeta.generico    { --c: var(--gen);  --cbg: var(--gen-bg);  --g1: #fff1d2; --g2: #ffd98f; }
+  .foto { position: relative; height: 150px; display: grid; place-items: center;
+          background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.9) 0, transparent 45%),
+                      linear-gradient(140deg, var(--g1, #eee), var(--g2, #ddd)); }
+  .foto .icono { font-size: 4.2rem; filter: drop-shadow(0 10px 12px rgba(0,0,0,.18)); transition: transform .25s; }
+  .tarjeta:hover .foto .icono { transform: scale(1.1) rotate(-4deg); }
+  .foto .badge { position: absolute; top: 12px; left: 12px; }
+  .foto .id { position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,.75); padding: 2px 8px; border-radius: 999px; }
+  .foto .agotado-sello { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(255,255,255,.55);
+                         font-weight: 800; letter-spacing: .1em; color: var(--err); font-size: 1rem; }
+  .cuerpo { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: .7rem; font-weight: 800;
+           text-transform: uppercase; letter-spacing: .05em; padding: 5px 9px; border-radius: 999px;
+           background: var(--cbg, var(--accent-soft)); color: var(--c, var(--accent)); }
+  .foto .badge { background: rgba(255,255,255,.85); }
+  .id { color: var(--muted); font-size: .78rem; font-weight: 700; }
+  .tarjeta h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
+  .precio { font-size: 1.55rem; font-weight: 800; letter-spacing: -.02em; color: var(--text); }
+  .detalle { color: var(--muted); font-size: .84rem; min-height: 1.2em; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .muestra { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); display: inline-block; }
+  .barra-stock { height: 6px; border-radius: 999px; background: #efede7; overflow: hidden; margin-top: 4px; }
+  .barra-stock i { display: block; height: 100%; border-radius: 999px; background: var(--ok); }
+  .barra-stock.bajo i { background: var(--warn); }
+  .pie { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; gap: 8px; }
+  .stock { font-size: .76rem; font-weight: 700; color: var(--ok); }
+  .stock.bajo { color: var(--warn); }
+  .stock.agotado { color: var(--err); }
+  .mas { width: 38px; height: 38px; border-radius: 12px; border: 0; background: var(--text); color: #fff;
+         font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: background .15s; }
+  .tarjeta:hover .mas { background: var(--accent); }
+
+  /* usuarios */
+  .usuario { align-items: stretch; }
+  .portada { height: 64px; background: linear-gradient(120deg, var(--av), color-mix(in srgb, var(--av) 55%, #fff)); }
+  .usuario .cuerpo { padding-top: 0; }
+  .avatar { flex: none; width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center;
+            color: #fff; font-weight: 800; font-size: 1.1rem; background: var(--av); margin-top: -30px;
+            border: 4px solid var(--card); box-shadow: var(--sombra); }
+  .usuario h3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 6px; }
+  .usuario .email, .usuario .dir { color: var(--muted); font-size: .84rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .usuario .linea-inf { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 12px; flex-wrap: wrap; }
+  .badge.admin { background: #efe8fb; color: #6a3fb5; }
+
+  /* pedidos */
+  .lineas { display: flex; flex-direction: column; gap: 8px; }
+  .linea { display: grid; grid-template-columns: 1fr 70px 38px; gap: 6px; }
+  .linea button { padding: 0; border-radius: 12px; }
+  .resumen { margin-top: 18px; padding: 16px; border-radius: 16px; color: #fff;
+             background: linear-gradient(120deg, #2b1b8f, var(--accent));
+             display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+  .resumen strong { font-size: 1.4rem; font-weight: 800; }
+  .pedido { padding: 20px; gap: 10px; }
+  .pedido .arriba { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .pedido .num { display: flex; align-items: center; gap: 10px; }
+  .pedido .num .burbuja { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); display: grid; place-items: center; font-size: 1.2rem; }
+  .pedido .fecha { color: var(--muted); font-size: .8rem; }
+  .pedido ul { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .pedido li { display: flex; justify-content: space-between; gap: 10px; font-size: .9rem; align-items: center; }
+  .pedido li .cant { display: inline-grid; place-items: center; min-width: 26px; height: 26px; border-radius: 8px;
+                     background: #f1efe9; font-weight: 700; font-size: .8rem; margin-right: 6px; }
+  .pedido .total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; margin-top: 4px;
+                   border-top: 1px dashed var(--border); font-weight: 700; }
+  .pedido .total span:last-child { font-size: 1.35rem; font-weight: 800; color: var(--accent); }
+
+  .vacio { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 56px 16px;
+           border: 2px dashed var(--border); border-radius: 22px; background: rgba(255,255,255,.6); }
+  .vacio .ico { font-size: 3rem; display: block; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="barra">
+    <div class="marca">
+      <div class="logo">🛍️</div>
+      <strong>Tienda Online</strong>
+    </div>
+    <div class="servidor">
+      <span class="etq">API</span>
+      <input id="api-url">
+      <span id="estado"></span>
+      <button onclick="conectar()">Conectar</button>
+    </div>
+  </div>
+  <div class="hero">
+    <h1>Todo lo que necesitas,<br>en un solo sitio ✨</h1>
+    <p>Electrónica, ropa y mucho más. Frontend que consume la API REST de FastAPI.</p>
+    <div class="stats">
+      <div class="stat"><b id="st-productos">–</b><span>productos</span></div>
+      <div class="stat"><b id="st-unidades">–</b><span>unidades en stock</span></div>
+      <div class="stat"><b id="st-clientes">–</b><span>clientes</span></div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="tabs">
+    <button data-tab="productos" class="activa">📦 Productos</button>
+    <button data-tab="usuarios">👥 Usuarios</button>
+    <button data-tab="pedidos">🛒 Nuevo pedido</button>
+    <button data-tab="historial">🧾 Historial</button>
+  </div>
+</nav>
+
+<main>
+  <!-- PRODUCTOS: ver (GET /productos), crear (POST /productos) y eliminar (DELETE /productos/{id}) -->
+  <section id="productos" class="activa">
+    <div>
+      <div class="cabecera">
+        <h2>Catálogo<span class="contador" id="num-productos"></span></h2>
+        <div class="acciones">
+          <div class="buscar"><input id="buscar" placeholder="Buscar producto…" oninput="pintarProductos()"></div>
+          <button class="secundario" onclick="cargarProductos()">↻ Recargar</button>
+        </div>
+      </div>
+      <input type="hidden" id="filtro-tipo" value="">
+      <div class="chips" id="chips">
+        <button class="chip activa" data-filtro="">✨ Todos</button>
+        <button class="chip" data-filtro="electronico">💻 Electrónica</button>
+        <button class="chip" data-filtro="ropa">👕 Ropa</button>
+        <button class="chip" data-filtro="generico">🏷️ Genérico</button>
+      </div>
+      <div class="rejilla" id="lista-productos"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="burbuja">➕</span>Nuevo producto</h2>
+      <p class="sub">Se añadirá al catálogo de la tienda.</p>
+      <form id="form-producto">
+        <label>Tipo</label>
+        <div class="tipos">
+          <input type="radio" name="tipo" id="tp-gen" value="generico" checked><label for="tp-gen"><span class="ico">🏷️</span>Genérico</label>
+          <input type="radio" name="tipo" id="tp-ele" value="electronico"><label for="tp-ele"><span class="ico">💻</span>Electrónico</label>
+          <input type="radio" name="tipo" id="tp-rop" value="ropa"><label for="tp-rop"><span class="ico">👕</span>Ropa</label>
+        </div>
+        <label>Nombre</label>
+        <input name="nombre" required placeholder="Portátil">
+        <div class="fila">
+          <div><label>Precio (€)</label><input name="precio" type="number" step="0.01" min="0" required placeholder="899.99"></div>
+          <div><label>Stock</label><input name="stock" type="number" step="1" min="0" required placeholder="10"></div>
+        </div>
+        <div class="campo-electronico oculto">
+          <label>Meses de garantía</label>
+          <input name="meses_garantia" type="number" step="1" min="0" placeholder="24">
+        </div>
+        <div class="campo-ropa oculto fila">
+          <div><label>Talla</label><input name="talla" placeholder="M"></div>
+          <div><label>Color</label><input name="color" placeholder="Azul"></div>
+        </div>
+        <button class="principal" type="submit">Crear producto</button>
+        <div class="msg"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- USUARIOS: ver (GET /usuarios) y crear (POST /usuarios) -->
+  <section id="usuarios">
+    <div>
+      <div class="cabecera">
+        <h2>Usuarios<span class="contador" id="num-usuarios"></span></h2>
+        <button class="secundario" onclick="cargarUsuarios()">↻ Recargar</button>
+      </div>
+      <div class="rejilla" id="lista-usuarios"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="burbuja">🙋</span>Nuevo usuario</h2>
+      <p class="sub">Los clientes pueden hacer pedidos.</p>
+      <form id="form-usuario">
+        <label>Tipo</label>
+        <div class="tipos dos">
+          <input type="radio" name="tipo" id="tu-cli" value="cliente" checked><label for="tu-cli"><span class="ico">🙋</span>Cliente</label>
+          <input type="radio" name="tipo" id="tu-adm" value="administrador"><label for="tu-adm"><span class="ico">🛠️</span>Administrador</label>
+        </div>
+        <label>Nombre</label>
+        <input name="nombre" required placeholder="Ana García">
+        <label>Email</label>
+        <input name="email" type="email" required placeholder="ana@example.com">
+        <label>Dirección postal <span id="dir-obligatoria">(obligatoria para clientes)</span></label>
+        <input name="direccion_postal" placeholder="Calle Mayor 1, 28013 Madrid">
+        <button class="principal" type="submit">Crear usuario</button>
+        <div class="msg"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- NUEVO PEDIDO: crear (POST /pedidos) -->
+  <section id="pedidos">
+    <div>
+      <div class="cabecera"><h2>Elige productos</h2></div>
+      <div class="rejilla" id="escaparate"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="burbuja">🛒</span>Tu carrito</h2>
+      <p class="sub">Pulsa un producto del catálogo para añadirlo.</p>
+      <form id="form-pedido">
+        <label>Cliente</label>
+        <select id="sel-cliente"></select>
+        <label>Productos y cantidades</label>
+        <div class="lineas" id="lineas"></div>
+        <button class="secundario" type="button" style="margin-top:8px;width:100%" onclick="anadirLinea()">+ Añadir producto</button>
+        <div class="resumen"><span>Total estimado</span><strong id="total-estimado">0,00 €</strong></div>
+        <button class="principal" type="submit">Realizar pedido</button>
+        <div class="msg"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- PEDIDOS DE UN USUARIO: consultar (GET /usuarios/{id}/pedidos) -->
+  <section id="historial" class="una-col">
+    <div>
+      <div class="cabecera">
+        <h2>Pedidos de un usuario<span class="contador" id="num-pedidos"></span></h2>
+        <div class="acciones">
+          <select id="sel-historial" onchange="cargarPedidosUsuario()"></select>
+          <button class="secundario" onclick="cargarPedidosUsuario()">↻ Recargar</button>
+        </div>
+      </div>
+      <div class="rejilla" id="lista-pedidos"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // =====================================================================
+  // Dirección del servidor: se cambia en el cuadro "API" de arriba
+  // (p. ej. http://192.168.1.34:8000 para usar la API de otro equipo).
+  // =====================================================================
+  let API_URL = "http://localhost:8000";
+  if (location.protocol.startsWith("http")) {
+    API_URL = location.origin;                        // abierto desde http://<servidor>:8000/tienda/
+  } else {
+    try { API_URL = localStorage.getItem("api_url") || API_URL; } catch (e) {}   // abierto con doble clic
+  }
+  document.getElementById("api-url").value = API_URL;
+
+  let usuarios = [];
+  let productos = [];
+
+  const TIPOS = {
+    generico:    { nombre: "Genérico",    icono: "🏷️" },
+    electronico: { nombre: "Electrónica", icono: "💻" },
+    ropa:        { nombre: "Ropa",        icono: "👕" },
+  };
+  // Icono según el nombre del producto (si no coincide ninguno, se usa el del tipo)
+  const ICONOS_NOMBRE = [
+    [/port[aá]til|laptop|ordenador/i, "💻"], [/m[oó]vil|tel[eé]fono|smartphone/i, "📱"],
+    [/auricular|cascos/i, "🎧"], [/tablet/i, "📲"], [/reloj/i, "⌚"], [/c[aá]mara/i, "📷"],
+    [/tele|monitor|pantalla/i, "🖥️"], [/rat[oó]n/i, "🖱️"], [/teclado/i, "⌨️"], [/consola/i, "🎮"],
+    [/camiseta/i, "👕"], [/pantal[oó]n|vaquero/i, "👖"], [/vestido/i, "👗"], [/zapat|deportiva/i, "👟"],
+    [/chaqueta|abrigo/i, "🧥"], [/gorra|sombrero/i, "🧢"], [/calcet/i, "🧦"], [/bufanda/i, "🧣"],
+    [/taza|caf[eé]/i, "☕"], [/libro/i, "📚"], [/mochila|bolso/i, "🎒"], [/l[aá]mpara/i, "💡"],
+    [/planta/i, "🪴"], [/vela/i, "🕯️"], [/botella/i, "🍶"],
+  ];
+  const COLORES_NOMBRE = { azul: "#2f6bff", negro: "#1b1d24", blanco: "#ffffff", rojo: "#e03131", verde: "#2f9e44",
+                           amarillo: "#fcc419", rosa: "#f06595", gris: "#868e96", morado: "#7950f2", naranja: "#fd7e14",
+                           marrón: "#8d5a2b", marron: "#8d5a2b", beige: "#e9d8b4" };
+  const COLORES_AVATAR = ["#5b3df5", "#2f6bff", "#e0457b", "#d98a00", "#0f9d8a", "#7c3aed", "#e8590c"];
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const euros = n => Number(n).toLocaleString("es-ES", { style: "currency", currency: "EUR" });
+  const iniciales = n => String(n).trim().split(/\s+/).slice(0, 2).map(p => p[0]).join("").toUpperCase();
+  const vacio = (icono, texto) => `<div class="vacio"><span class="ico">${icono}</span>${texto}</div>`;
+  const iconoProducto = p => (ICONOS_NOMBRE.find(([re]) => re.test(p.nombre)) || [, TIPOS[p.tipo].icono])[1];
+
+  // ---------------------------------------------------------------------
+  // Única función que habla con la API. Todas las demás la usan.
+  //   metodo: "GET", "POST" o "DELETE"
+  //   ruta:   endpoint de la API, p. ej. "/productos"
+  //   cuerpo: objeto que se envía como JSON (solo en POST)
+  // Comprueba el código HTTP: si no es 2xx lanza un error con el "detail"
+  // que devuelve FastAPI; si es correcto devuelve el JSON de la respuesta.
+  // ---------------------------------------------------------------------
+  async function api(metodo, ruta, cuerpo) {
+    const resp = await fetch(API_URL + ruta, {
+      method: metodo,
+      headers: cuerpo ? { "Content-Type": "application/json" } : {},
+      body: cuerpo ? JSON.stringify(cuerpo) : undefined,
+    });
+    if (resp.status === 204) return null;            // DELETE correcto: sin cuerpo
+    const datos = await resp.json();
+    if (!resp.ok) {
+      let detalle = datos.detail;
+      if (Array.isArray(detalle)) {                   // 422: errores de validación de Pydantic
+        detalle = detalle.map(e => {
+          const campo = (e.loc || []).filter(p => p !== "body").join(".");
+          return (campo ? campo + ": " : "") + e.msg.replace(/^Value error, /, "");
+        }).join("\n");
+      }
+      throw new Error(`Error ${resp.status}: ${detalle}`);
+    }
+    return datos;
+  }
+
+  function mostrar(form, texto, ok) {
+    const m = form.querySelector(".msg");
+    m.textContent = texto;
+    m.className = "msg " + (ok ? "ok" : "err");
+  }
+
+  // Cifras de la portada (se recalculan al cargar productos o usuarios)
+  function pintarEstadisticas() {
+    document.getElementById("st-productos").textContent = productos.length;
+    document.getElementById("st-unidades").textContent = productos.reduce((s, p) => s + p.stock, 0);
+    document.getElementById("st-clientes").textContent = usuarios.filter(u => !u.es_admin).length;
+  }
+
+  // ---------- conexión con el servidor ----------
+  async function conectar() {
+    API_URL = document.getElementById("api-url").value.trim().replace(/\/+$/, "");
+    try { localStorage.setItem("api_url", API_URL); } catch (e) {}
+    const estado = document.getElementById("estado");
+    try {
+      await Promise.all([cargarProductos(), cargarUsuarios()]);
+      estado.textContent = "● Conectado"; estado.className = "ok";
+    } catch (e) {
+      estado.textContent = "● Sin conexión"; estado.className = "err";
+      estado.title = "No se puede conectar (¿está arrancada la API?)";
+      document.getElementById("lista-productos").innerHTML = vacio("🔌", "No se puede conectar con la API. ¿Está arrancada?");
+    }
+  }
+
+  // ---------- pestañas ----------
+  document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("nav button, section").forEach(e => e.classList.remove("activa"));
+    b.classList.add("activa");
+    document.getElementById(b.dataset.tab).classList.add("activa");
+    if (b.dataset.tab === "pedidos" || b.dataset.tab === "historial") prepararPedidos();
+  }));
+
+  // ---------- filtro por tipo (chips) ----------
+  document.querySelectorAll("#chips .chip").forEach(c => c.addEventListener("click", () => {
+    document.querySelectorAll("#chips .chip").forEach(x => x.classList.toggle("activa", x === c));
+    document.getElementById("filtro-tipo").value = c.dataset.filtro;
+    pintarProductos();
+  }));
+
+  // ---------- productos ----------
+  // GET /productos -> lista de productos
+  async function cargarProductos() {
+    productos = await api("GET", "/productos");
+    pintarProductos();
+    pintarEstadisticas();
+  }
+
+  function detalleProducto(p) {
+    if (p.tipo === "electronico") return `🛡️ Garantía: ${p.meses_garantia} meses`;
+    if (p.tipo === "ropa") {
+      const muestra = COLORES_NOMBRE[String(p.color || "").toLowerCase()];
+      return `Talla ${esc(p.talla)} · ${muestra ? `<span class="muestra" style="background:${muestra}"></span>` : ""}${esc(p.color)}`;
+    }
+    return "";
+  }
+
+  function claseStock(stock) {
+    return stock === 0 ? "agotado" : stock < 5 ? "bajo" : "";
+  }
+
+  // Imagen de cabecera de la tarjeta: degradado del tipo + icono grande
+  function fotoProducto(p) {
+    return `<div class="foto">
+        <span class="badge">${TIPOS[p.tipo].nombre}</span><span class="id">#${p.id}</span>
+        <span class="icono">${iconoProducto(p)}</span>
+        ${p.stock === 0 ? '<span class="agotado-sello">AGOTADO</span>' : ""}
+      </div>`;
+  }
+
+  function stockProducto(p) {
+    const pct = Math.min(100, p.stock / 30 * 100);
+    return `<span class="stock ${claseStock(p.stock)}">${p.stock === 0 ? "Agotado" : p.stock < 5 ? `¡Solo quedan ${p.stock}!` : `${p.stock} en stock`}</span>
+      <div class="barra-stock ${claseStock(p.stock)}"><i style="width:${pct}%"></i></div>`;
+  }
+
+  function pintarProductos() {
+    const filtro = document.getElementById("filtro-tipo").value;
+    const texto = document.getElementById("buscar").value.trim().toLowerCase();
+    const lista = productos.filter(p => (!filtro || p.tipo === filtro) && (!texto || p.nombre.toLowerCase().includes(texto)));
+    document.getElementById("num-productos").textContent = lista.length;
+    document.getElementById("lista-productos").innerHTML = lista.length ? lista.map((p, i) => `
+      <div class="tarjeta ${p.tipo}" style="animation-delay:${i * 40}ms">
+        ${fotoProducto(p)}
+        <div class="cuerpo">
+          <h3>${esc(p.nombre)}</h3>
+          <div class="detalle">${detalleProducto(p)}</div>
+          ${stockProducto(p)}
+          <div class="pie">
+            <div class="precio">${euros(p.precio)}</div>
+            <button class="secundario peligro" onclick="eliminarProducto(${p.id})" title="Eliminar producto">🗑️</button>
+          </div>
+        </div>
+      </div>`).join("") : vacio("📦", productos.length ? "Ningún producto coincide con la búsqueda." : "No hay productos todavía. Crea el primero con el formulario.");
+  }
+
+  // DELETE /productos/{id}
+  async function eliminarProducto(id) {
+    try { await api("DELETE", `/productos/${id}`); cargarProductos(); }
+    catch (e) { mostrar(formProducto, e.message, false); }
+  }
+
+  const formProducto = document.getElementById("form-producto");
+  formProducto.querySelectorAll('[name="tipo"]').forEach(r => r.addEventListener("change", () => {
+    const t = formProducto.tipo.value;
+    formProducto.querySelector(".campo-electronico").classList.toggle("oculto", t !== "electronico");
+    formProducto.querySelector(".campo-ropa").classList.toggle("oculto", t !== "ropa");
+  }));
+  // POST /productos -> crea el producto con los datos del formulario
+  formProducto.addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const f = formProducto;
+    const cuerpo = {
+      tipo: f.tipo.value, nombre: f.nombre.value.trim(),
+      precio: Number(f.precio.value), stock: Number(f.stock.value),
+    };
+    if (cuerpo.tipo === "electronico") cuerpo.meses_garantia = f.meses_garantia.value === "" ? null : Number(f.meses_garantia.value);
+    if (cuerpo.tipo === "ropa") { cuerpo.talla = f.talla.value.trim() || null; cuerpo.color = f.color.value.trim() || null; }
+    try {
+      const p = await api("POST", "/productos", cuerpo);
+      mostrar(f, `Producto creado con ID ${p.id}.`, true);
+      const tipo = f.tipo.value; f.reset(); f.tipo.value = tipo;
+      cargarProductos();
+    } catch (e) { mostrar(f, e.message, false); }
+  });
+
+  // ---------- usuarios ----------
+  // GET /usuarios -> lista de usuarios
+  async function cargarUsuarios() {
+    usuarios = await api("GET", "/usuarios");
+    pintarEstadisticas();
+    document.getElementById("num-usuarios").textContent = usuarios.length;
+    document.getElementById("lista-usuarios").innerHTML = usuarios.length ? usuarios.map((u, i) => `
+      <div class="tarjeta usuario" style="--av:${COLORES_AVATAR[u.id % COLORES_AVATAR.length]};animation-delay:${i * 40}ms">
+        <div class="portada"></div>
+        <div class="cuerpo">
+          <div class="avatar">${esc(iniciales(u.nombre))}</div>
+          <h3>${esc(u.nombre)}</h3>
+          <div class="email">✉️ ${esc(u.email)}</div>
+          ${u.direccion_postal ? `<div class="dir">📍 ${esc(u.direccion_postal)}</div>` : ""}
+          <div class="linea-inf">
+            <span class="badge ${u.es_admin ? "admin" : ""}">${u.es_admin ? "🛠️ Admin" : "🙋 Cliente"}</span>
+            ${u.es_admin ? `<span class="id">#${u.id}</span>` : `<button class="secundario" onclick="verPedidos(${u.id})">Ver pedidos →</button>`}
+          </div>
+        </div>
+      </div>`).join("") : vacio("👥", "No hay usuarios todavía.");
+  }
+
+  const formUsuario = document.getElementById("form-usuario");
+  formUsuario.querySelectorAll('[name="tipo"]').forEach(r => r.addEventListener("change", () => {
+    document.getElementById("dir-obligatoria").style.display = formUsuario.tipo.value === "cliente" ? "" : "none";
+  }));
+  // POST /usuarios -> crea el usuario con los datos del formulario
+  formUsuario.addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const f = formUsuario;
+    const cuerpo = { tipo: f.tipo.value, nombre: f.nombre.value.trim(), email: f.email.value.trim() };
+    if (f.direccion_postal.value.trim()) cuerpo.direccion_postal = f.direccion_postal.value.trim();
+    try {
+      const u = await api("POST", "/usuarios", cuerpo);
+      mostrar(f, `Usuario creado con ID ${u.id}.`, true);
+      f.reset(); document.getElementById("dir-obligatoria").style.display = "";
+      cargarUsuarios();
+    } catch (e) { mostrar(f, e.message, false); }
+  });
+
+  // ---------- pedidos ----------
+  async function prepararPedidos() {
+    try { await Promise.all([cargarUsuarios(), cargarProductos()]); } catch (e) { return; }
+    const clientes = usuarios.filter(u => !u.es_admin);
+    const opciones = clientes.length
+      ? clientes.map(c => `<option value="${c.id}">${c.id} – ${esc(c.nombre)}</option>`).join("")
+      : '<option value="">(primero crea un cliente)</option>';
+    for (const id of ["sel-cliente", "sel-historial"]) {
+      const sel = document.getElementById(id);
+      const actual = sel.value;
+      sel.innerHTML = opciones;
+      if (clientes.some(c => String(c.id) === actual)) sel.value = actual;
+    }
+    pintarEscaparate();
+    const lineas = document.getElementById("lineas");
+    lineas.querySelectorAll("select").forEach(rellenarProductos);
+    if (!lineas.children.length) anadirLinea();
+    actualizarTotal();
+    cargarPedidosUsuario();
+  }
+
+  // Catálogo de la pestaña "Nuevo pedido": al pulsar un producto se añade al pedido
+  function pintarEscaparate() {
+    document.getElementById("escaparate").innerHTML = productos.length ? productos.map((p, i) => `
+      <div class="tarjeta ${p.tipo}" style="cursor:pointer;animation-delay:${i * 40}ms" onclick="anadirLinea(${p.id})" title="Añadir al pedido">
+        ${fotoProducto(p)}
+        <div class="cuerpo">
+          <h3>${esc(p.nombre)}</h3>
+          ${stockProducto(p)}
+          <div class="pie"><div class="precio">${euros(p.precio)}</div><button type="button" class="mas">+</button></div>
+        </div>
+      </div>`).join("") : vacio("📦", "Primero crea algún producto en la pestaña «Productos».");
+  }
+
+  function rellenarProductos(sel) {
+    const actual = sel.value;
+    sel.innerHTML = productos.length
+      ? productos.map(p => `<option value="${p.id}">${iconoProducto(p)} ${esc(p.nombre)} (${euros(p.precio)})</option>`).join("")
+      : '<option value="">(primero crea un producto)</option>';
+    if (productos.some(p => String(p.id) === actual)) sel.value = actual;
+  }
+
+  function anadirLinea(productoId) {
+    const lineas = document.getElementById("lineas");
+    // Si el producto ya está en el pedido, se suma 1 a su cantidad
+    if (productoId) {
+      for (const l of lineas.querySelectorAll(".linea")) {
+        if (l.querySelector("select").value === String(productoId)) {
+          l.querySelector("input").value = Number(l.querySelector("input").value) + 1;
+          actualizarTotal(); return;
+        }
+      }
+      // Se reutiliza una línea vacía (la primera que aparece por defecto)
+      const unica = lineas.querySelectorAll(".linea");
+      if (unica.length === 1 && !unica[0].dataset.tocada) {
+        unica[0].querySelector("select").value = String(productoId);
+        unica[0].dataset.tocada = "1";
+        actualizarTotal(); return;
+      }
+    }
+    const div = document.createElement("div");
+    div.className = "linea";
+    div.innerHTML = `<select></select><input type="number" min="1" value="1">
+      <button type="button" class="secundario peligro" title="Quitar">✕</button>`;
+    div.querySelector("button").onclick = () => { div.remove(); actualizarTotal(); };
+    div.querySelector("select").onchange = () => { div.dataset.tocada = "1"; actualizarTotal(); };
+    div.querySelector("input").oninput = actualizarTotal;
+    rellenarProductos(div.querySelector("select"));
+    if (productoId) { div.querySelector("select").value = String(productoId); div.dataset.tocada = "1"; }
+    lineas.appendChild(div);
+    actualizarTotal();
+  }
+
+  // Total aproximado calculado en el navegador (el total real lo devuelve la API)
+  function actualizarTotal() {
+    let total = 0;
+    document.querySelectorAll("#lineas .linea").forEach(l => {
+      const p = productos.find(p => String(p.id) === l.querySelector("select").value);
+      if (p) total += p.precio * (Number(l.querySelector("input").value) || 0);
+    });
+    document.getElementById("total-estimado").textContent = euros(total);
+  }
+
+  // POST /pedidos -> crea un pedido {cliente_id, items: [{producto_id, cantidad}]}
+  const formPedido = document.getElementById("form-pedido");
+  formPedido.addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const cliente_id = Number(document.getElementById("sel-cliente").value);
+    const items = [...document.querySelectorAll("#lineas .linea")]
+      .map(l => ({ producto_id: Number(l.querySelector("select").value), cantidad: Number(l.querySelector("input").value) }))
+      .filter(i => i.producto_id);
+    if (!cliente_id) { mostrar(formPedido, "Primero crea un cliente en la pestaña «Usuarios».", false); return; }
+    if (!items.length) { mostrar(formPedido, "Primero crea algún producto en la pestaña «Productos».", false); return; }
+    try {
+      const p = await api("POST", "/pedidos", { cliente_id, items });
+      mostrar(formPedido, `Pedido ${p.id} creado. Total: ${euros(p.total)}.`, true);
+      document.getElementById("lineas").innerHTML = "";
+      document.getElementById("sel-historial").value = String(cliente_id);
+      prepararPedidos();
+    } catch (e) { mostrar(formPedido, e.message, false); }
+  });
+
+  // GET /usuarios/{cliente_id}/pedidos -> historial de pedidos del usuario elegido
+  async function cargarPedidosUsuario() {
+    const id = document.getElementById("sel-historial").value;
+    const cont = document.getElementById("lista-pedidos");
+    const num = document.getElementById("num-pedidos");
+    if (!id) { cont.innerHTML = vacio("🧾", "Primero crea un cliente."); num.textContent = ""; return; }
+    try {
+      const pedidos = await api("GET", `/usuarios/${id}/pedidos`);
+      num.textContent = pedidos.length;
+      cont.innerHTML = pedidos.length ? pedidos.map((p, i) => `
+        <div class="tarjeta pedido" style="animation-delay:${i * 40}ms">
+          <div class="arriba">
+            <div class="num"><span class="burbuja">🧾</span><div><h3>Pedido #${p.id}</h3><span class="fecha">${new Date(p.fecha).toLocaleString("es-ES")}</span></div></div>
+          </div>
+          <ul>${p.items.map(i => `<li><span><span class="cant">${i.cantidad}</span>${esc(i.nombre_producto)}</span><span>${euros(i.subtotal)}</span></li>`).join("")}</ul>
+          <div class="total"><span>Total</span><span>${euros(p.total)}</span></div>
+        </div>`).join("") : vacio("🧾", "Este usuario todavía no ha hecho ningún pedido.");
+    } catch (e) {
+      num.textContent = "";
+      cont.innerHTML = `<div class="vacio" style="color:var(--err)">${esc(e.message)}</div>`;
+    }
+  }
+
+  function verPedidos(id) {
+    const sel = document.getElementById("sel-historial");
+    sel.innerHTML = `<option value="${id}"></option>`;   // se conserva al recargar la lista
+    sel.value = String(id);
+    document.querySelector('nav button[data-tab="historial"]').click();
+  }
+
+  conectar();
+</script>
+</body>
+</html>

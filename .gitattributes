@@ -1,0 +1,8 @@
+# Normaliza finales de línea: el repositorio siempre guarda LF.
+# Evita que los ficheros editados en Windows (CRLF) rompan scripts dentro del contenedor Linux.
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.pdf binary
